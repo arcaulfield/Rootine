@@ -1,21 +1,22 @@
 package com.example.rootine;
 
-import java.util.Calendar;
-
 //singleton class that keeps track of the app activity
 public class AppManager {
 
     private static AppManager instance = null;
 
-    private int goal = 0;
+    private int goal;
+    private int numAnimals;
 
     private AppManager(){
-
+        goal = 0;
+        //SET THIS TO 0 LATER
+        numAnimals = 0;
     }
-
-    public static AppManager getInstance(){
+    static AppManager getInstance(){
         if (instance == null){
             instance = new AppManager();
+
         }
         return instance;
     }
@@ -27,4 +28,14 @@ public class AppManager {
     public int getGoal(){
         return this.goal;
     }
+
+    public void incNumAnimals(){
+        this.numAnimals ++;
+    }
+
+
+    int getNumAnimals(){
+        return this.numAnimals;
+    }
+
 }
