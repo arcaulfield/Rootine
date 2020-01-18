@@ -28,6 +28,16 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+        android:backgroundTint="#d0aa7e"
+        app:srcCompat="@mipmap/carrot_transparant" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/next_day"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="@dimen/fab_margin"
+        android:backgroundTint="#d0aa7e"
+        app:srcCompat="@mipmap/clock" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
