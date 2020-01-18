@@ -21,6 +21,8 @@ public class CalendarActivity extends AppCompatActivity {
     private CalendarView calendarView;
     private List<EventDay> events;
 
+    private AppManager manager = AppManager.getInstance();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,18 +31,39 @@ public class CalendarActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        this.events = AppManager.getInstance().getNoMeatDays();
+        this.events = manager.getNoMeatDays();
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                displayMessage(view, "Good Job!");
 
-                Calendar managerDate = AppManager.getInstance().getCurrentDate();
+                if (manager.getLoggedToday()) {
+                    displayMessage(view, "You already logged your entry today! You have to wait till tomorrow");
+                    return;
+                }
+
+                // Alert the manager that no meat was eaten today
+                manager.noMeatToday();
+
+                int goal = manager.getGoal();
+                int noMeatThisWeek = manager.getNoMeatDaysThisWeek();
+                String message;
+                if (goal == noMeatThisWeek) {
+                    message = "You reached yor goal! You got a new animal!";
+                }
+                else if (goal > noMeatThisWeek) {
+                    message = (goal - noMeatThisWeek) + " meatless day" + ((goal - noMeatThisWeek == 1) ? "" : "s") + " left!";
+                }
+                else {
+                    message = "Wow! You went over your goal by " + (noMeatThisWeek - goal) + " day" + ((noMeatThisWeek - goal == 1) ? "" : "s") + " this week!";
+                }
+
+                displayMessage(view, message);
+
+                Calendar managerDate = manager.getCurrentDate();
 
                 Calendar today = Calendar.getInstance();
-
                 today.set(managerDate.get(Calendar.YEAR), managerDate.get(Calendar.MONTH), managerDate.get(Calendar.DATE));
                 events.add(new EventDay(today, R.mipmap.carrot_transparant));
                 calendarView.setEvents(events);
@@ -51,7 +74,7 @@ public class CalendarActivity extends AppCompatActivity {
         next_day.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AppManager.getInstance().incrementDate();
+                manager.incrementDate();
             }
         });
 
