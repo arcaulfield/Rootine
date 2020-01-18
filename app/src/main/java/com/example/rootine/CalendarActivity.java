@@ -10,6 +10,7 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import android.view.View;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -18,6 +19,7 @@ import java.util.List;
 
 public class CalendarActivity extends AppCompatActivity {
 
+    private TextView daysLeftText;
     private CalendarView calendarView;
     private List<EventDay> events;
 
@@ -30,6 +32,10 @@ public class CalendarActivity extends AppCompatActivity {
         setContentView(R.layout.activity_calendar);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        daysLeftText = findViewById(R.id.daysLeftText);
+
+        updateTextBox();
 
         this.events = manager.getNoMeatDays();
 
@@ -46,20 +52,12 @@ public class CalendarActivity extends AppCompatActivity {
                 // Alert the manager that no meat was eaten today
                 manager.noMeatToday();
 
-                int goal = manager.getGoal();
-                int noMeatThisWeek = manager.getNoMeatDaysThisWeek();
-                String message;
-                if (goal == noMeatThisWeek) {
-                    message = "You reached yor goal! You got a new animal!";
-                }
-                else if (goal > noMeatThisWeek) {
-                    message = (goal - noMeatThisWeek) + " meatless day" + ((goal - noMeatThisWeek == 1) ? "" : "s") + " left!";
-                }
-                else {
-                    message = "Wow! You went over your goal by " + (noMeatThisWeek - goal) + " day" + ((noMeatThisWeek - goal == 1) ? "" : "s") + " this week!";
+                if (manager.getNoMeatDaysThisWeek() == manager.getGoal()) {
+                    displayMessage(view, "You reached your goal! Go find your new animal in your wildlife reserve!");
                 }
 
-                displayMessage(view, message);
+                // Display how many days left
+                updateTextBox();
 
                 Calendar managerDate = manager.getCurrentDate();
 
@@ -75,6 +73,7 @@ public class CalendarActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 manager.incrementDate();
+                updateTextBox();
             }
         });
 
@@ -82,12 +81,27 @@ public class CalendarActivity extends AppCompatActivity {
         calendarView.setEvents(events);
     }
 
-    private void noMeatToday() {
-        events.add(new EventDay(AppManager.getInstance().getCurrentDate(), R.mipmap.carrot));
-    }
-
     public void displayMessage(View view, String message) {
         Snackbar.make(view, message, Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
+    }
+
+    private void updateTextBox() {
+        String message = "Meatless days this week: " + manager.getNoMeatDaysThisWeek() + "\n";
+
+        int goal = manager.getGoal();
+        int noMeatThisWeek = manager.getNoMeatDaysThisWeek();
+
+        if (goal == noMeatThisWeek) {
+            message += "You reached yor goal this week!";
+        }
+        else if (goal > noMeatThisWeek) {
+            message += (goal - noMeatThisWeek) + " meatless day" + ((goal - noMeatThisWeek == 1) ? "" : "s") + " left this week!";
+        }
+        else {
+            message += "Wow! You went over your goal by " + (noMeatThisWeek - goal) + " day" + ((noMeatThisWeek - goal == 1) ? "" : "s") + " this week!";
+        }
+
+        daysLeftText.setText(message);
     }
 }
