@@ -19,9 +19,8 @@ import java.util.List;
 public class CalendarActivity extends AppCompatActivity {
 
     private CalendarView calendarView;
-    private List<EventDay> events = new ArrayList<>();
+    private List<EventDay> events;
 
-    private Calendar calendar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,41 +29,42 @@ public class CalendarActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        this.events = AppManager.getInstance().getNoMeatDays();
+
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                displayMessage(view, "Good Job!");
+
+                Calendar managerDate = AppManager.getInstance().getCurrentDate();
+
+                Calendar today = Calendar.getInstance();
+
+                today.set(managerDate.get(Calendar.YEAR), managerDate.get(Calendar.MONTH), managerDate.get(Calendar.DATE));
+                events.add(new EventDay(today, R.mipmap.carrot_transparant));
+                calendarView.setEvents(events);
             }
         });
 
         FloatingActionButton next_day = findViewById(R.id.next_day);
-        fab.setOnClickListener(new View.OnClickListener() {
+        next_day.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                AppManager.getInstance().incrementDate();
             }
         });
 
-        calendar = Calendar.getInstance();
-
-        calendar.set(2020, 1, 17);
-
-        events.add(new EventDay(calendar, R.mipmap.carrot));
-
         calendarView = (CalendarView) findViewById(R.id.calendarView);
-
         calendarView.setEvents(events);
-
-        try {
-            calendarView.setDate(Calendar.getInstance());
-        } catch (OutOfDateRangeException e) {
-            e.printStackTrace();
-        }
     }
 
+    private void noMeatToday() {
+        events.add(new EventDay(AppManager.getInstance().getCurrentDate(), R.mipmap.carrot));
+    }
 
-
-
+    public void displayMessage(View view, String message) {
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+    }
 }
