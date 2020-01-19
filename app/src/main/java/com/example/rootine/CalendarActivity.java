@@ -1,16 +1,31 @@
 package com.example.rootine;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
+import com.microsoft.projectoxford.vision.VisionServiceClient;
+import com.microsoft.projectoxford.vision.VisionServiceRestClient;
+import com.microsoft.projectoxford.vision.contract.AnalysisResult;
+import com.microsoft.projectoxford.vision.contract.Category;
+import com.microsoft.projectoxford.vision.rest.VisionServiceException;
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
+
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Calendar;
 
 public class CalendarActivity extends AppCompatActivity {
@@ -19,6 +34,13 @@ public class CalendarActivity extends AppCompatActivity {
     private MaterialCalendarView calendarView;
 
     private AppManager manager = AppManager.getInstance();
+
+    private VisionServiceClient client;
+
+    private Uri mImageUri;
+
+    // The image selected to detect.
+    private Bitmap mBitmap;
 
 
     @Override
@@ -29,6 +51,10 @@ public class CalendarActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         setTitle("Calendar");
 
+        if (client==null){
+            client = new VisionServiceRestClient(getString(R.string.subscription_key), getString(R.string.subscription_apiroot));
+        }
+
         daysLeftText = findViewById(R.id.daysLeftText);
 
         updateTextBox();
@@ -37,6 +63,10 @@ public class CalendarActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(pickPhoto , 1);
 
                 if (manager.getLoggedToday()) {
                     displayMessage(view, "You already logged your entry today! You have to wait till tomorrow");
@@ -114,4 +144,84 @@ public class CalendarActivity extends AppCompatActivity {
         calendarView.addDecorator(new CarrotDecorator(this));
         calendarView.addDecorator(new CarrotTodayDecorator(this));
     }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case 1:
+                if (resultCode == RESULT_OK) {
+                    // If image is selected successfully, set the image URI and bitmap.
+                    mImageUri = data.getData();
+
+                    mBitmap = ImageHelper.loadSizeLimitedBitmapFromUri(
+                            mImageUri, getContentResolver());
+                    if (mBitmap != null) {
+                        new doRequest().execute();
+                    }
+                    break;
+                }
+        }
+    }
+
+    private String process() throws VisionServiceException, IOException {
+        Gson gson = new Gson();
+        String[] features = {"ImageType", "Categories"};
+        String[] details = {};
+
+        // Put the image into an input stream for detection.
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(output.toByteArray());
+
+        AnalysisResult v = this.client.analyzeImage(inputStream, features, details);
+
+        String result = gson.toJson(v);
+        Log.d("result", result);
+
+        return result;
+    }
+
+
+    private class doRequest extends AsyncTask<String, String, String> {
+        // Store error message
+        private Exception e = null;
+
+        public doRequest() {
+        }
+
+        @Override
+        protected String doInBackground(String... args) {
+            try {
+                return process();
+            } catch (Exception e) {
+                this.e = e;    // Store error
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String data) {
+            super.onPostExecute(data);
+            // Display based on error existence
+
+            if (e != null) {
+                displayMessage(calendarView, "Something went wrong...");
+                this.e = null;
+            } else {
+                Gson gson = new Gson();
+                AnalysisResult result = gson.fromJson(data, AnalysisResult.class);
+
+                for (Category category: result.categories) {
+                    Log.d("", "Category: " + category.name + ", score: " + category.score + "\n");
+                }
+
+            }
+
+        }
+
+
+    }
+
+
 }

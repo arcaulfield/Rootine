@@ -12,6 +12,6 @@
     <string name="goal">My goal:</string>
     <string name="stating_goal">Number of meatless meals a week:</string>
     <string name="title_activity_calendar">CalendarActivity</string>
-    <string name="subscription_key"></string>
-    <string name="subscription_apiroot"></string>
+    <string name="subscription_key">8c63689b05f94630a74333b6b5042333</string>
+    <string name="subscription_apiroot">https://wastus.api.cognitive.microsoft.com/vision/v2.0/analyze/</string>
 </resources>

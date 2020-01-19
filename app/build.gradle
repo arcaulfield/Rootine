@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.rootine"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -30,6 +30,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    aaptOptions {
+        additionalParameters "--warn-manifest-validation"
+    }
 }
 
 dependencies {
@@ -45,4 +48,7 @@ dependencies {
 
     implementation 'com.applandeo:material-calendar-view:1.5.1'
     implementation 'com.github.prolificinteractive:material-calendarview:1.6.1'
+
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.microsoft.projectoxford:vision:1.0.394'
 }
